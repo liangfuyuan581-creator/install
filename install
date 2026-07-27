@@ -32,4 +32,4 @@ else
         --output "${HIWONDER_DIR}/install.py"
 fi
 
-exec python3 "${HIWONDER_DIR}/install.py" "$@"
+python3 "${HIWONDER_DIR}/install.py" "$@"
