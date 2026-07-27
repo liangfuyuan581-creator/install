@@ -106,13 +106,13 @@ ROS_PACKAGES = [
 
 ALL_MODULES = ["common", "source", "ros2", "opencv", "vision", "env", "verify"]
 MODULE_DESCRIPTIONS = {
-    "common": "安装通用构建、Python 和网络依赖",
-    "source": "选择并配置 Ubuntu 系统软件源",
-    "ros2": "安装 ROS 2 Humble Desktop 和常用机器人包",
-    "opencv": "从源码安装 OpenCV 4.11.0 + opencv_contrib 4.11.0",
-    "vision": "构建与自定义 OpenCV 对齐的 ROS 2 cv_bridge",
-    "env": "生成 ROS 2 和 OpenCV 环境配置",
-    "verify": "检查 ROS 2、OpenCV 和 cv_bridge 安装结果",
+    "common": "Install common build, Python, and network dependencies",
+    "source": "Select and configure the Ubuntu apt mirror",
+    "ros2": "Install ROS 2 Humble Desktop and common robotics packages",
+    "opencv": "Build OpenCV 4.11.0 and opencv_contrib 4.11.0 from source",
+    "vision": "Build ROS 2 cv_bridge against the custom OpenCV",
+    "env": "Generate ROS 2 and OpenCV environment settings",
+    "verify": "Verify ROS 2, OpenCV, and cv_bridge installation",
 }
 
 
@@ -127,7 +127,7 @@ def run(command: str, *, dry_run: bool = False, check: bool = True) -> None:
         return
     completed = subprocess.run(command, shell=True, executable="/bin/bash")
     if check and completed.returncode != 0:
-        raise RuntimeError(f"命令执行失败，退出码 {completed.returncode}: {command}")
+        raise RuntimeError(f"Command failed with exit code {completed.returncode}: {command}")
 
 
 def apt_install(packages: list[str], *, dry_run: bool = False) -> None:
@@ -141,7 +141,7 @@ def apt_install(packages: list[str], *, dry_run: bool = False) -> None:
 
 def require_ubuntu_jammy() -> None:
     if not Path("/etc/os-release").exists():
-        raise RuntimeError("无法识别系统：缺少 /etc/os-release")
+        raise RuntimeError("Cannot identify the operating system: /etc/os-release is missing")
     values = {}
     for line in Path("/etc/os-release").read_text(encoding="utf-8").splitlines():
         if "=" in line:
@@ -149,7 +149,7 @@ def require_ubuntu_jammy() -> None:
             values[key] = value.strip('"')
     if values.get("ID") != "ubuntu" or values.get("VERSION_ID") != "22.04":
         raise RuntimeError(
-            "HiWonder 当前目标环境是 Ubuntu 22.04，检测到 "
+            "HiWonder requires Ubuntu 22.04, detected "
             f"{values.get('ID', 'unknown')} {values.get('VERSION_ID', 'unknown')}"
         )
 
@@ -228,14 +228,14 @@ def environment_script() -> str:
 
 def write_environment(*, dry_run: bool = False) -> None:
     content = environment_script()
-    print(f"\n[HiWonder] 写入环境文件: {ENV_FILE}")
+    print(f"\n[HiWonder] Writing environment file: {ENV_FILE}")
     write_privileged_file(ENV_FILE, content, dry_run=dry_run)
 
 
 def write_privileged_file(path: PurePosixPath, content: str, *, dry_run: bool = False) -> None:
     """Write an /etc file whether the runner is root or uses sudo."""
     if dry_run:
-        print(f"\n[HiWonder] 写入文件: {path}")
+        print(f"\n[HiWonder] Writing file: {path}")
         return
     target = Path(str(path))
     if os.geteuid() == 0:
@@ -262,18 +262,18 @@ def configure_sources(*, mirror: str | None = None, dry_run: bool = False) -> No
     }
     mirror = mirror or os.environ.get("HIWONDER_UBUNTU_MIRROR")
     if mirror is None and not dry_run:
-        print("\n请选择 Ubuntu 软件源：")
+        print("\nSelect an Ubuntu apt mirror:")
         options = list(mirrors)
         for index, name in enumerate(options, 1):
             print(f"  {index}. {name} ({mirrors[name]})")
-        choice = input("选择 [1]: ").strip() or "1"
+        choice = input("Select [1]: ").strip() or "1"
         try:
             mirror = options[int(choice) - 1]
         except (ValueError, IndexError):
-            raise RuntimeError("无效的软件源选项")
+            raise RuntimeError("Invalid apt mirror selection")
     mirror = mirror or "official"
     if mirror not in mirrors:
-        raise RuntimeError(f"不支持的软件源: {mirror}")
+        raise RuntimeError(f"Unsupported apt mirror: {mirror}")
 
     codename = ubuntu_codename()
     lines = [
@@ -284,7 +284,7 @@ def configure_sources(*, mirror: str | None = None, dry_run: bool = False) -> No
     ]
     source_file = PurePosixPath("/etc/apt/sources.list.d/hiwonder-ubuntu.list")
     content = "\n".join(lines) + "\n"
-    print(f"\n[HiWonder] 配置 Ubuntu 软件源: {mirror}")
+    print(f"\n[HiWonder] Configuring Ubuntu apt mirror: {mirror}")
     if dry_run:
         return
     write_privileged_file(source_file, content)
@@ -303,7 +303,7 @@ def install_ros2(*, dry_run: bool = False) -> None:
         f"| {command_prefix()}gpg --dearmor --yes -o {key_path}",
         dry_run=dry_run,
     )
-    print(f"\n[HiWonder] 写入 ROS 2 软件源: {list_path}")
+    print(f"\n[HiWonder] Writing ROS 2 apt source: {list_path}")
     write_privileged_file(list_path, repository, dry_run=dry_run)
     apt_install(ROS_PACKAGES, dry_run=dry_run)
     run(
@@ -399,27 +399,27 @@ MODULES = {
 
 
 def print_plan(modules: list[str]) -> None:
-    print(f"{PROJECT_NAME} 安装计划")
-    print(f"目标系统: Ubuntu 22.04 | ROS 2 {ROS_DISTRO} | OpenCV {OPENCV_VERSION}")
+    print(f"{PROJECT_NAME} installation plan")
+    print(f"Target: Ubuntu 22.04 | ROS 2 {ROS_DISTRO} | OpenCV {OPENCV_VERSION}")
     for index, name in enumerate(modules, 1):
         print(f"{index}. {name}: {MODULE_DESCRIPTIONS[name]}")
 
 
 def select_modules() -> list[str]:
-    print(f"\n{PROJECT_NAME} 一键配置工具")
-    print("目标环境: Ubuntu 22.04 + ROS 2 Humble + OpenCV 4.11.0")
-    print("\n可用模块：")
-    print("  1. all     一键安装完整环境")
+    print(f"\n{PROJECT_NAME} one-click installer")
+    print("Target: Ubuntu 22.04 + ROS 2 Humble + OpenCV 4.11.0")
+    print("\nAvailable modules:")
+    print("  1. all     Install the complete environment")
     for index, name in enumerate(ALL_MODULES, 2):
         print(f"  {index}. {name:<7} {MODULE_DESCRIPTIONS[name]}")
-    choice = input("\n请选择 [1]: ").strip() or "1"
+    choice = input("\nSelect [1]: ").strip() or "1"
     if choice == "1" or choice.lower() == "all":
         return ALL_MODULES
     if choice.isdigit() and 2 <= int(choice) <= len(ALL_MODULES) + 1:
         return [ALL_MODULES[int(choice) - 2]]
     if choice in MODULES:
         return [choice]
-    raise RuntimeError("无效的模块选择")
+    raise RuntimeError("Invalid module selection")
 
 
 def parse_args() -> argparse.Namespace:
@@ -429,10 +429,10 @@ def parse_args() -> argparse.Namespace:
         nargs="?",
         choices=["all", *MODULES.keys(), "menu"],
         default="menu",
-        help="要执行的模块，默认进入交互菜单",
+        help="Module to run; opens the interactive menu by default",
     )
-    parser.add_argument("--plan", action="store_true", help="只显示命令计划，不执行安装")
-    parser.add_argument("--mirror", choices=["official", "aliyun", "tsinghua", "ustc"], help="Ubuntu 软件源")
+    parser.add_argument("--plan", action="store_true", help="Show the plan without installing anything")
+    parser.add_argument("--mirror", choices=["official", "aliyun", "tsinghua", "ustc"], help="Ubuntu apt mirror")
     return parser.parse_args()
 
 
@@ -448,7 +448,7 @@ def main() -> int:
     if args.plan:
         return 0
     if args.mirror and "source" not in modules:
-        print("[HiWonder] --mirror 仅在 source 模块中生效")
+        print("[HiWonder] --mirror only applies to the source module")
     for module in modules:
         print(f"\n===== HiWonder: {module} =====")
         if module == "source":
@@ -458,7 +458,7 @@ def main() -> int:
             configure_sources(mirror=selected_mirror)
         else:
             MODULES[module]()
-    print("\nHiWonder 配置完成。重新打开终端，或执行: source /etc/profile.d/hiwonder-ros2.sh")
+    print("\nHiWonder setup complete. Open a new shell or run: source /etc/profile.d/hiwonder-ros2.sh")
     return 0
 
 
@@ -466,8 +466,8 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except KeyboardInterrupt:
-        print("\n用户取消操作")
+        print("\nOperation cancelled")
         raise SystemExit(130)
     except Exception as error:
-        print(f"\n[HiWonder] 安装失败: {error}", file=sys.stderr)
+        print(f"\n[HiWonder] Installation failed: {error}", file=sys.stderr)
         raise SystemExit(1)

@@ -95,8 +95,17 @@ class HiWonderInstallerTests(unittest.TestCase):
             text=True,
             check=True,
         )
-        self.assertIn("HiWonder 安装计划", result.stdout)
+        self.assertIn("HiWonder installation plan", result.stdout)
         self.assertIn("ROS 2 humble", result.stdout)
+
+    def test_default_plan_output_is_ascii_safe_for_docker_terminals(self):
+        result = subprocess.run(
+            ["python", str(ROOT / "install.py"), "--plan"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        self.assertTrue(result.stdout.isascii())
 
     def test_dockerfile_targets_the_requested_image(self):
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8").lower()
