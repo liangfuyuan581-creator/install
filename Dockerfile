@@ -1,14 +1,24 @@
-# 使用nginx作为基础镜像  
-FROM nginx  
-  
-# 将本地文件复制到容器的/usr/share/nginx/html/目录下  
-COPY tools /usr/share/nginx/html/tools  
-COPY docs /usr/share/nginx/html/docs  
-COPY install /usr/share/nginx/html/install  
-COPY install.py /usr/share/nginx/html/install.py  
-  
-# 暴露容器的80端口到主机的8080端口  
-EXPOSE 80  
-  
-# 启动nginx服务  
-CMD ["nginx", "-g", "daemon off;"]
+FROM ubuntu:22.04
+
+ARG HIWONDER_MIRROR=official
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8 \
+    HIWONDER_UBUNTU_MIRROR=${HIWONDER_MIRROR}
+
+# Bootstrap dependencies are intentionally small; the HiWonder runner installs
+# the complete ROS 2 and OpenCV build dependencies in the next layer.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY install.py /opt/hiwonder-installer/install.py
+COPY install /usr/local/bin/hiwonder
+
+RUN chmod +x /usr/local/bin/hiwonder \
+    && python3 /opt/hiwonder-installer/install.py all --mirror ${HIWONDER_MIRROR} \
+    && rm -rf /opt/hiwonder/src /opt/hiwonder/build /var/lib/apt/lists/* /tmp/* \
+    && apt-get clean
+
+WORKDIR /workspace
+ENTRYPOINT ["/bin/bash"]

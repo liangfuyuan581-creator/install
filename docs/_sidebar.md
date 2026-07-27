@@ -1,3 +1,1 @@
-- [一键安装](./README.md)
-- 高效工具
-    - [Md编辑器Typora](./install/Typora.md)
+- [HiWonder 安装器](./README.md)

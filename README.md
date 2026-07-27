@@ -1,142 +1,94 @@
-# 一键安装(忘记要Star了，点了再走哦~)
+# HiWonder 一键配置工具
 
-> ### 大家想要的工具可以在[心愿清单](https://github.com/fishros/install/issues/2)中提出,说不定会有魔法师满足你的心愿
+这是一个独立的 HiWonder 环境安装器，面向 Docker 或实体机中的 Ubuntu 22.04，提供：
 
-## 工具列表
+- ROS 2 Humble Desktop
+- OpenCV 4.11.0
+- opencv_contrib 4.11.0
+- 与自定义 OpenCV 对齐的 ROS 2 `cv_bridge`
+- Ubuntu 软件源选择和环境变量自动配置
+- 可扩展的模块化命令
 
-已支持工具列表：
+安装器不依赖 FishROS，不安装 ROS 1，也不安装 VS Code。
 
-- 一键安装:ROS(支持ROS和ROS2,树莓派Jetson)  [贡献@小鱼](https://github.com/fishros)
-- 一键安装:VsCode(支持amd64和arm64)  [贡献@小鱼](https://github.com/fishros)
-- 一键安装:github桌面版(小鱼常用的github客户端)  [贡献@小鱼](https://github.com/fishros)
-- 一键安装:nodejs开发环境(通过nodejs可以预览小鱼官网噢)  [贡献@小鱼](https://github.com/fishros)
-- 一键配置:rosdep(小鱼的rosdepc,又快又好用)  [贡献@小鱼](https://github.com/fishros)
-- 一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择)  [贡献@小鱼](https://github.com/fishros)
-- 一键配置:系统源(更换系统源,支持全版本Ubuntu系统)  [贡献@小鱼](https://github.com/fishros)
-- 一键安装:Docker(支持amd64和arm64)  [贡献@alyssa](https://github.com/alyssa1024)
-- 一键安装:cartographer 贡献 [@小鱼](https://github.com/fishros) & [@Catalpa](https://github.com/Y-zi)
-- 一键安装:微信客户端  [贡献@小鱼](https://github.com/fishros)
+## 直接使用
 
-
-
-## 使用方法
-```
-source <(wget -qO- http://fishros.com/install)
+```bash
+wget -O hiwonder https://raw.githubusercontent.com/liangfuyuan581-creator/install/master/install
+bash hiwonder --plan
+bash hiwonder all --mirror official
 ```
 
-## 如何自动选择(Dockerfile中使用)
+国内网络可以选择镜像：
 
-目前一键安装支持从配置文件自动输入选项，你需要手动运行一次一键安装，使用完毕后会自动产生 `/tmp/fish_install.yaml`。
-
-使用下面的指令将配置文件拷贝到当前终端即可。
-
-```
-cp /tmp/fish_install.yaml ./
+```bash
+bash hiwonder all --mirror aliyun
+# 可选: official / aliyun / tsinghua / ustc
 ```
 
-### Dockerfile中使用
+`all` 的安装顺序是：通用依赖、Ubuntu 软件源、ROS 2 Humble、OpenCV 4.11.0、`cv_bridge`、环境配置、验证。OpenCV 从源码编译，耗时和磁盘占用都明显高于普通 apt 安装。
 
-使用样例如下
+## 分模块执行
 
-```
-RUN apt update \ 
-    && apt install wget python3-yaml -y  \
-    # 安装melodic
-    && echo "chooses:\n" > fish_install.yaml \
-    && echo "- {choose: 1, desc: '一键安装:ROS(支持ROS和ROS2,树莓派Jetson)'}\n" >> fish_install.yaml \
-    && echo "- {choose: 1, desc: 更换源继续安装}\n" >> fish_install.yaml \
-    && echo "- {choose: 2, desc: 清理三方源}\n" >> fish_install.yaml \
-    && echo "- {choose: 1, desc: melodic(ROS1)}\n" >> fish_install.yaml \
-    && echo "- {choose: 1, desc: melodic(ROS1)桌面版}\n" >> fish_install.yaml \
-    && wget http://fishros.com/install  -O fishros && /bin/bash fishros \
-    # 进行最后的清理
-    && rm -rf /var/lib/apt/lists/*  /tmp/* /var/tmp/* \
-    && apt-get clean && apt autoclean 
-```
-一键换源
-
-```
-FROM ubuntu:22.04
-
-# 一键换源
-RUN apt update \
-    && apt install wget python3 python3-yaml -y python3-distro\
-    && echo "chooses:\n" > fish_install.yaml \
-    && echo "- {choose: 5, desc: '一键安装:ROS(支持ROS和ROS2,树莓派Jetson)'}\n" >> fish_install.yaml \
-    && echo "- {choose: 2, desc: 更换源继续安装}\n" >> fish_install.yaml \
-    && echo "- {choose: 1, desc: 清理三方源}\n" >> fish_install.yaml \
-    && wget http://fishros.com/install  -O fishros && /bin/bash fishros \
-    # 进行最后的清理
-    && rm -rf fish_install.yaml \
-    && rm -rf /var/lib/apt/lists/*  /tmp/* /var/tmp/* \
-    && apt-get clean && apt autoclean 
+```bash
+bash hiwonder common
+bash hiwonder source --mirror aliyun
+bash hiwonder ros2
+bash hiwonder opencv
+bash hiwonder vision
+bash hiwonder env
+bash hiwonder verify
 ```
 
-## 贡献指南
+也可以不带参数进入交互菜单：
 
-如果想把自己的常用安装程序变成一键安装程序，可以遵循下面的贡献指南。
-
-### 1.fork工程
-
-fork工程到你的github,然后克隆工程到本地
-
-### 2.新建文件
-
-在本地的工程的tools目录下新建py文件
-
-- 若是安装工具命名为：tool_install_xxx.py
-- 若是配置工具为：tool_config_xxx.py
-
-### 3.编写程序
-
-拷贝模板到你新建的文件：
-
-```
-# -*- coding: utf-8 -*-
-from .base import BaseTool
-from .base import PrintUtils,CmdTask,FileUtils,AptUtils,ChooseTask
-from .base import osversion
-from .base import run_tool_file
-
-class Tool(BaseTool):
-    def __init__(self):
-        self.type = BaseTool.TYPE_INSTALL
-        self.name = "模板工程"
-        self.author = '小鱼'
-
-    def run(self):
-        #正式的运行
-        pass
+```bash
+bash hiwonder
 ```
 
-接着修改type、name、author
+安装完成后重新打开终端，或手动加载：
 
-在run函数中编写逻辑，可以提供给你的工具有：
-1. PrintUtils 打印文字
-2. FileUtils 操作文件
-3. AptUtils 操作Apt
-4. ChooseTask 选择选项
-5. CmdTask 运行命令行工具
-6. run_tool_file 运行其他工具（需要在install.py的tools中配置dep）
+```bash
+source /etc/profile.d/hiwonder-ros2.sh
+```
 
-信息：
-1. osversion 系统相关信息
-2. osarch 架构信息 amd64/i386/arm
+环境文件会设置：
 
-### 4.在install.py中tools中添加一条信息
+```text
+ROS_DISTRO=humble
+HIWONDER_OPENCV_VERSION=4.11.0
+OpenCV_DIR=/opt/hiwonder/opencv-4.11.0/lib/cmake/opencv4
+```
 
-### 5.运行测试
+## Docker
 
+仓库中的 `Dockerfile` 会基于 `ubuntu:22.04` 构建完整的 ROS 2 Humble + OpenCV 4.11.0 环境：
 
-## 贡献名单
+```bash
+docker build --build-arg HIWONDER_MIRROR=official -t hiwonder-ros2-humble:22.04 .
+docker run --name hiwonder-ros2-humble -it hiwonder-ros2-humble:22.04
+```
 
-- 一键安装ROS [小鱼](https://github.com/fishros)
-- 一键安装github-deskto [小鱼](https://github.com/fishros)
-- 一键配置rosdep [小鱼](https://github.com/fishros)
-- 一键配置ros环境 [小鱼](https://github.com/fishros)
-- 一键配置系统源 [小鱼](https://github.com/fishros)
-- 一键安装nodejs [小鱼](https://github.com/fishros)
-- 一键安装vscode [小鱼](https://github.com/fishros)
-- 一键安装:Docker(支持amd64和arm64) [@alyssa](https://github.com/alyssa1024)
+国内网络：
 
+```bash
+docker build --build-arg HIWONDER_MIRROR=aliyun -t hiwonder-ros2-humble:22.04 .
+```
 
+这个镜像提供完整的命令行和 ROS 开发环境。桌面、GNOME、NoMachine 属于 Docker 运行层配置，不由这个安装器强制安装。
+
+## 开发和测试
+
+新模块应加入 `install.py` 的 `MODULES` 注册表，并为纯配置逻辑增加测试。运行测试：
+
+```bash
+python3 -m unittest discover -s tests -p 'test_hiwonder_installer.py' -v
+python3 -m py_compile install.py
+bash -n install
+```
+
+执行安装前可以用 `--plan` 查看目标流程，不会执行 apt、源码下载或编译：
+
+```bash
+python3 install.py all --plan
+```
