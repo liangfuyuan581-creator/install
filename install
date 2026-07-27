@@ -4,6 +4,7 @@ set -euo pipefail
 # HiWonder bootstrap. It only fetches the independent runner from this repo.
 HIWONDER_URL="${HIWONDER_URL:-https://raw.githubusercontent.com/liangfuyuan581-creator/install/master}"
 HIWONDER_DIR="${HIWONDER_DIR:-/tmp/hiwonder-install}"
+HIWONDER_CACHE_BUSTER="${HIWONDER_CACHE_BUSTER:-$(date +%s)}"
 
 if [[ "${EUID}" -eq 0 ]]; then
     SUDO=""
@@ -23,7 +24,7 @@ if ! command -v curl >/dev/null 2>&1 && ! command -v wget >/dev/null 2>&1; then
 fi
 
 download_runner() {
-    local runner_url="${HIWONDER_URL%/}/install.py"
+    local runner_url="${HIWONDER_URL%/}/install.py?hiwonder=${HIWONDER_CACHE_BUSTER}"
 
     if command -v curl >/dev/null 2>&1; then
         if curl --fail --silent --show-error --location --http1.1 \

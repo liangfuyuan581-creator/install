@@ -31,6 +31,8 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertIn("if wget", bootstrap)
         self.assertIn("--tries=5", bootstrap)
         self.assertIn("download_runner", bootstrap)
+        self.assertIn("HIWONDER_CACHE_BUSTER", bootstrap)
+        self.assertIn("?hiwonder=", bootstrap)
 
     def test_registry_exposes_only_supported_hiwonder_modules(self):
         self.assertEqual(
