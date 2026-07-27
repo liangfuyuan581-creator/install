@@ -15,7 +15,7 @@
 
 ```bash
 export HIWONDER_URL=https://raw.githubusercontent.com/liangfuyuan581-creator/install/hiwonder-ros2-opencv
-wget -O hiwonder "${HIWONDER_URL}/install"
+wget -O hiwonder "${HIWONDER_URL}/install?cache=$(date +%s)"
 bash hiwonder --plan
 bash hiwonder all --mirror official
 ```
