@@ -17,19 +17,34 @@ if ! command -v python3 >/dev/null 2>&1 || ! python3 -c 'import argparse' >/dev/
     DEBIAN_FRONTEND=noninteractive ${SUDO} apt-get install -y python3
 fi
 
-if command -v curl >/dev/null 2>&1; then
-    curl --fail --silent --show-error --location \
-        "${HIWONDER_URL%/}/install.py" \
-        --output "${HIWONDER_DIR}/install.py"
-elif command -v wget >/dev/null 2>&1; then
-    wget --quiet --output-document="${HIWONDER_DIR}/install.py" \
-        "${HIWONDER_URL%/}/install.py"
-else
+if ! command -v curl >/dev/null 2>&1 && ! command -v wget >/dev/null 2>&1; then
     ${SUDO} apt-get update
-    DEBIAN_FRONTEND=noninteractive ${SUDO} apt-get install -y curl
-    curl --fail --silent --show-error --location \
-        "${HIWONDER_URL%/}/install.py" \
-        --output "${HIWONDER_DIR}/install.py"
+    DEBIAN_FRONTEND=noninteractive ${SUDO} apt-get install -y curl wget
 fi
+
+download_runner() {
+    local runner_url="${HIWONDER_URL%/}/install.py"
+
+    if command -v curl >/dev/null 2>&1; then
+        if curl --fail --silent --show-error --location --http1.1 \
+            --retry 5 --retry-all-errors --connect-timeout 15 --max-time 120 \
+            "${runner_url}" --output "${HIWONDER_DIR}/install.py"; then
+            return 0
+        fi
+        echo "[HiWonder] curl download failed; trying wget..." >&2
+    fi
+
+    if command -v wget >/dev/null 2>&1; then
+        if wget --quiet --tries=5 --timeout=30 --waitretry=3 \
+            --output-document="${HIWONDER_DIR}/install.py" "${runner_url}"; then
+            return 0
+        fi
+    fi
+
+    echo "[HiWonder] Could not download install.py from ${runner_url}" >&2
+    return 1
+}
+
+download_runner
 
 python3 "${HIWONDER_DIR}/install.py" "$@"

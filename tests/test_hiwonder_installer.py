@@ -25,6 +25,13 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertNotIn("fishros", bootstrap)
         self.assertNotIn("mirror.fishros.com", bootstrap)
 
+    def test_bootstrap_retries_curl_and_falls_back_to_wget(self):
+        bootstrap = (ROOT / "install").read_text(encoding="utf-8")
+        self.assertIn("--retry-all-errors", bootstrap)
+        self.assertIn("if wget", bootstrap)
+        self.assertIn("--tries=5", bootstrap)
+        self.assertIn("download_runner", bootstrap)
+
     def test_registry_exposes_only_supported_hiwonder_modules(self):
         self.assertEqual(
             set(self.installer.MODULES),
