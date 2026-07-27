@@ -14,7 +14,8 @@
 ## 直接使用
 
 ```bash
-wget -O hiwonder https://raw.githubusercontent.com/liangfuyuan581-creator/install/master/install
+export HIWONDER_URL=https://raw.githubusercontent.com/liangfuyuan581-creator/install/hiwonder-ros2-opencv
+wget -O hiwonder "${HIWONDER_URL}/install"
 bash hiwonder --plan
 bash hiwonder all --mirror official
 ```
