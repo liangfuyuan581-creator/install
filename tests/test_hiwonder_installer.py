@@ -100,8 +100,11 @@ class HiWonderInstallerTests(unittest.TestCase):
         logo = self.installer.HIWONDER_LOGO
         self.assertTrue(logo.isascii())
         self.assertIn("H I W O N D E R", logo)
-        self.assertIn("@@@@", logo)
+        self.assertIn("#   # ##### #   #", logo)
+        self.assertNotIn("@@@@", logo)
         self.assertNotIn("_   _ _  __", logo)
+        self.assertLessEqual(max(map(len, logo.splitlines())), 60)
+        self.assertTrue(all(not line.endswith(" ") for line in logo.splitlines()))
 
     def test_framed_brand_area_is_ascii_and_menu_text_has_no_mojibake(self):
         menu_texts = (
