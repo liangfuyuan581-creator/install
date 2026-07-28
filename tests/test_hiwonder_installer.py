@@ -37,6 +37,8 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertIn("HIWONDER_CACHE_BUSTER", bootstrap)
         self.assertIn("?hiwonder=", bootstrap)
         self.assertIn("hiwonder-install-${EUID}", bootstrap)
+        self.assertNotIn("--show-error", bootstrap)
+        self.assertIn("curl download failed; trying wget", bootstrap)
 
     def test_bootstrap_forces_utf8_for_docker_terminals(self):
         bootstrap = (ROOT / "install").read_text(encoding="utf-8")

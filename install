@@ -54,7 +54,7 @@ download_runner() {
     local runner_url="${HIWONDER_URL%/}/install.py?hiwonder=${HIWONDER_CACHE_BUSTER}"
 
     if command -v curl >/dev/null 2>&1; then
-        if curl --fail --silent --show-error --location --http1.1 \
+        if curl --fail --silent --location --http1.1 \
             --retry 5 --retry-all-errors --connect-timeout 15 --max-time 120 \
             "${runner_url}" --output "${HIWONDER_DIR}/install.py"; then
             return 0
