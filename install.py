@@ -109,7 +109,7 @@ ALL_MODULES = ["common", "source", "ros2", "opencv", "vision", "env", "verify"]
 MODULE_DESCRIPTIONS = {
     "common": "Install common build, Python, and network dependencies",
     "source": "Select and configure the Ubuntu apt mirror",
-    "ros2": "Install ROS 2 Humble Desktop and common robotics packages",
+    "ros2": "Install full ROS 2 Humble packages and common robotics packages",
     "opencv": "Build OpenCV 4.11.0 and opencv_contrib 4.11.0 from source",
     "vision": "Build ROS 2 cv_bridge against the custom OpenCV",
     "env": "Generate ROS 2 and OpenCV environment settings",
@@ -182,7 +182,7 @@ def main_menu_text() -> str:
             "        HiWonder 一键安装工具 / HiWonder one-click installer",
             "        ROS 2 Humble  |  OpenCV 4.11.0",
             MENU_SUBSEPARATOR,
-            "[1] 安装 ROS 2 Humble Desktop / Install ROS 2 Humble Desktop",
+            "[1] 安装 ROS 2 Humble 完整功能包 / Install full ROS 2 Humble packages",
             "[2] 配置 Ubuntu 系统源 / Configure Ubuntu apt source",
             "[3] 安装 OpenCV 4.11.0 / Install OpenCV 4.11.0",
             "[4] 配置 ROS / OpenCV 环境 / Configure environment",
@@ -215,10 +215,11 @@ def ros_menu_text() -> str:
         [
             "",
             MENU_SEPARATOR,
-            "ROS 2 Humble 安装类型 / ROS 2 Humble installation",
+            "ROS 2 Humble 软件包类型 / ROS 2 Humble package type",
             MENU_SUBSEPARATOR,
-            "[1] Desktop 完整版 / Desktop",
-            "[2] 基础版 / Base",
+            "[1] ROS 2 Humble 完整功能包（含 RViz2 等工具） / Full ROS 2 Humble packages (includes RViz2 tools)",
+            "[2] ROS 2 Humble 基础功能包 / Base ROS 2 Humble packages",
+            "提示：只安装 ROS 2 软件包，不安装 Docker 或 Ubuntu 桌面 / Note: ROS 2 packages only; no Docker or Ubuntu desktop",
             "[0] 返回 / Back",
             MENU_SEPARATOR,
         ]

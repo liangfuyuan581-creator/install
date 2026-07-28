@@ -2,7 +2,7 @@
 
 这是一个独立的 HiWonder 环境安装器，面向 Docker 或实体机中的 Ubuntu 22.04，提供：
 
-- ROS 2 Humble Desktop
+- ROS 2 Humble 完整功能包（含 RViz2 等工具）
 - OpenCV 4.11.0
 - opencv_contrib 4.11.0
 - 与自定义 OpenCV 对齐的 ROS 2 `cv_bridge`
@@ -61,7 +61,7 @@ bash hiwonder
         HiWonder 一键安装工具 / HiWonder one-click installer
         ROS 2 Humble  |  OpenCV 4.11.0
 ------------------------------------------------------------
-[1] 安装 ROS 2 Humble Desktop / Install ROS 2 Humble Desktop
+[1] 安装 ROS 2 Humble 完整功能包 / Install full ROS 2 Humble packages
 [2] 配置 Ubuntu 系统源 / Configure Ubuntu apt source
 [3] 安装 OpenCV 4.11.0 / Install OpenCV 4.11.0
 [4] 配置 ROS / OpenCV 环境 / Configure environment

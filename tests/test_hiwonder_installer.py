@@ -81,7 +81,7 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertIn("HiWonder 一键安装工具 / HiWonder one-click installer", menu)
         self.assertIn("============================================================", menu)
         self.assertIn(
-            "[1] 安装 ROS 2 Humble Desktop / Install ROS 2 Humble Desktop",
+            "[1] 安装 ROS 2 Humble 完整功能包 / Install full ROS 2 Humble packages",
             menu,
         )
         self.assertIn(
@@ -92,6 +92,22 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertIn("[5]", menu)
         self.assertIn("[0]", menu)
         self.assertIn("H I W O N D E R", menu)
+
+    def test_ros_menu_explains_package_scope_without_desktop_ambiguity(self):
+        menu = self.installer.ros_menu_text()
+        self.assertIn("ROS 2 Humble 软件包类型 / ROS 2 Humble package type", menu)
+        self.assertIn(
+            "[1] ROS 2 Humble 完整功能包（含 RViz2 等工具） / Full ROS 2 Humble packages (includes RViz2 tools)",
+            menu,
+        )
+        self.assertIn(
+            "[2] ROS 2 Humble 基础功能包 / Base ROS 2 Humble packages",
+            menu,
+        )
+        self.assertIn(
+            "只安装 ROS 2 软件包，不安装 Docker 或 Ubuntu 桌面",
+            menu,
+        )
 
     def test_main_menu_prompt_matches_compact_interactive_style(self):
         self.assertIn("请选择 / Select [5]:", self.installer.MAIN_MENU_PROMPT)
