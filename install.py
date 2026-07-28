@@ -124,6 +124,13 @@ ANSI_YELLOW = "\033[1;33m"
 ANSI_RESET = "\033[0m"
 
 
+def configure_output_encoding() -> None:
+    """Keep bilingual output readable when the parent shell uses ASCII."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def terminal_color(text: str, color: str) -> str:
     if os.environ.get("NO_COLOR") or not sys.stdout.isatty():
         return text
@@ -613,6 +620,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    configure_output_encoding()
     args = parse_args()
     if args.module == "menu" and not args.plan:
         return interactive_menu()

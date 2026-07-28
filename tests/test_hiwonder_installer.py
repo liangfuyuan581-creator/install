@@ -1,6 +1,8 @@
 import importlib.util
+import os
 import pathlib
 import subprocess
+import sys
 import unittest
 
 
@@ -22,6 +24,7 @@ class HiWonderInstallerTests(unittest.TestCase):
     def test_bootstrap_is_independent_from_fishros(self):
         bootstrap = (ROOT / "install").read_text(encoding="utf-8").lower()
         self.assertIn("hiwonder", bootstrap)
+        self.assertIn("/hiwonder-ros2-opencv", bootstrap)
         self.assertNotIn("fishros", bootstrap)
         self.assertNotIn("mirror.fishros.com", bootstrap)
 
@@ -33,6 +36,33 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertIn("download_runner", bootstrap)
         self.assertIn("HIWONDER_CACHE_BUSTER", bootstrap)
         self.assertIn("?hiwonder=", bootstrap)
+
+    def test_bootstrap_forces_utf8_for_docker_terminals(self):
+        bootstrap = (ROOT / "install").read_text(encoding="utf-8")
+        self.assertIn('export LANG="C.UTF-8"', bootstrap)
+        self.assertIn('export LC_ALL="C.UTF-8"', bootstrap)
+        self.assertIn('export PYTHONIOENCODING="UTF-8"', bootstrap)
+
+    def test_interactive_menu_remains_readable_with_ascii_parent_encoding(self):
+        environment = os.environ.copy()
+        environment.update(
+            {
+                "LANG": "C",
+                "LC_ALL": "C",
+                "PYTHONIOENCODING": "ascii",
+                "NO_COLOR": "1",
+            }
+        )
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "install.py")],
+            input=b"0\n",
+            capture_output=True,
+            env=environment,
+            check=True,
+        )
+        output = result.stdout.decode("utf-8")
+        self.assertIn("请选择", output)
+        self.assertIn("退出", output)
 
     def test_registry_exposes_only_supported_hiwonder_modules(self):
         self.assertEqual(
