@@ -4,7 +4,9 @@ set -euo pipefail
 # HiWonder bootstrap. It only fetches the independent runner from this repo.
 export LANG="C.UTF-8"
 export LC_ALL="C.UTF-8"
+export LC_CTYPE="C.UTF-8"
 export PYTHONIOENCODING="UTF-8"
+export PYTHONUTF8="1"
 
 if [[ -t 1 ]]; then
     stty iutf8 2>/dev/null || true
@@ -73,4 +75,4 @@ download_runner() {
 
 download_runner
 
-python3 "${HIWONDER_DIR}/install.py" "$@"
+python3 -X utf8 "${HIWONDER_DIR}/install.py" "$@"

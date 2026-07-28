@@ -42,7 +42,10 @@ class HiWonderInstallerTests(unittest.TestCase):
         bootstrap = (ROOT / "install").read_text(encoding="utf-8")
         self.assertIn('export LANG="C.UTF-8"', bootstrap)
         self.assertIn('export LC_ALL="C.UTF-8"', bootstrap)
+        self.assertIn('export LC_CTYPE="C.UTF-8"', bootstrap)
         self.assertIn('export PYTHONIOENCODING="UTF-8"', bootstrap)
+        self.assertIn('export PYTHONUTF8="1"', bootstrap)
+        self.assertIn("python3 -X utf8", bootstrap)
         self.assertIn("stty iutf8", bootstrap)
 
     def test_bootstrap_explains_root_requirement_for_non_passwordless_docker_users(self):
