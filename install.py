@@ -116,14 +116,29 @@ MODULE_DESCRIPTIONS = {
     "verify": "Verify ROS 2, OpenCV, and cv_bridge installation",
 }
 
-HIWONDER_LOGO = r"""
- _   _ _  __        _    _
-| | | (_)/ _|      | |  | |
-| |_| | | |_  ___  | |  | | __      _____  _ __ ___
-|  _  | |  _|/ _ \ | |  | | \ \ /\ / / _ \| '__/ _ \
-| | | | | | |  __/ | |__| |  \ V  V / (_) | | |  __/
-\_| |_/_|_|  \___|  \____/    \_/\_/ \___/|_|  \___|
-"""
+MENU_INNER_WIDTH = 58
+HIWONDER_WORDMARK = (
+    "#   #  #####  #   #   ###   #   #  ####   #####  ####",
+    "##  #    #    # # #  #   #  ##  #  #   #  #      #   #",
+    "# # #    #    # # #  #   #  # # #  #   #  ####   ####",
+    "#  ##    #    ## ##  #   #  #  ##  #   #  #      #  #",
+    "#   #  #####  #   #   ###   #   #  ####   #####  #   #",
+)
+
+
+def _boxed_menu_line(content: str = "") -> str:
+    return f"| {content.center(MENU_INNER_WIDTH)} |"
+
+
+HIWONDER_LOGO = "\n".join(
+    [
+        "+" + "-" * (MENU_INNER_WIDTH + 2) + "+",
+        _boxed_menu_line("H I W O N D E R"),
+        *(_boxed_menu_line(line) for line in HIWONDER_WORDMARK),
+        _boxed_menu_line("ROS 2 Humble  |  OpenCV 4.11.0"),
+        "+" + "-" * (MENU_INNER_WIDTH + 2) + "+",
+    ]
+)
 
 MIRROR_MENU_CHOICES = {
     "1": "official",
@@ -137,24 +152,29 @@ OPENCV_MENU_CHOICES = {"1": False, "2": True, "0": None}
 
 
 def main_menu_text() -> str:
-    return textwrap.dedent(
-        f"""\
-        {HIWONDER_LOGO}
-        +======================================================+
-        | HiWonder 一键安装工具 / HiWonder one-click installer |
-        +======================================================+
-        | Target: Ubuntu 22.04                               |
-        | ROS: ROS 2 Humble                                  |
-        | OpenCV: 4.11.0                                     |
-        +------------------------------------------------------+
-        | [1] 安装 ROS 2 Humble / Install ROS 2 Humble         |
-        | [2] 配置 Ubuntu 系统源 / Configure Ubuntu apt source|
-        | [3] 安装 OpenCV 4.11.0 / Install OpenCV 4.11.0      |
-        | [4] 配置 ROS / OpenCV 环境 / Configure environment  |
-        | [5] 一键安装完整环境 / Install complete environment |
-        | [0] 退出 / Exit                                     |
-        +======================================================+
-        """
+    return "\n".join(
+        [
+            "",
+            HIWONDER_LOGO,
+            "",
+            "HiWonder 一键安装工具 / HiWonder one-click installer",
+            "Target / 目标: Ubuntu 22.04",
+            "ROS: ROS 2 Humble",
+            "OpenCV: 4.11.0",
+            "",
+            "  [1] 安装 ROS 2 Humble",
+            "      Install ROS 2 Humble",
+            "  [2] 配置 Ubuntu 系统源",
+            "      Configure Ubuntu apt source",
+            "  [3] 安装 OpenCV 4.11.0",
+            "      Install OpenCV 4.11.0",
+            "  [4] 配置 ROS / OpenCV 环境",
+            "      Configure ROS / OpenCV environment",
+            "  [5] 一键安装完整环境",
+            "      Install complete environment",
+            "  [0] 退出 / Exit",
+            "",
+        ]
     )
 
 

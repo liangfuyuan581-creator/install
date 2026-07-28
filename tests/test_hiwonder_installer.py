@@ -44,15 +44,28 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertEqual(self.installer.ROS_DISTRO, "humble")
         self.assertEqual(self.installer.OPENCV_VERSION, "4.11.0")
 
-    def test_main_menu_is_bilingual_and_has_hiwonder_ascii_branding(self):
+    def test_main_menu_is_bilingual_and_has_clean_hiwonder_wordmark(self):
         menu = self.installer.main_menu_text()
         self.assertIn("HiWonder", menu)
-        self.assertIn("一键安装工具", menu)
+        self.assertIn("H I W O N D E R", menu)
         self.assertIn("Install ROS 2 Humble", menu)
         self.assertIn("安装 ROS 2 Humble", menu)
         self.assertIn("[5]", menu)
         self.assertIn("[0]", menu)
-        self.assertIn("_   _", menu)
+
+    def test_framed_brand_area_is_ascii_and_menu_text_has_no_mojibake(self):
+        menu_texts = (
+            self.installer.main_menu_text(),
+            self.installer.mirror_menu_text(),
+            self.installer.ros_menu_text(),
+            self.installer.opencv_menu_text(),
+        )
+        mojibake_markers = ("涓", "閿", "瀹", "绯", "鐜", "鍏", "锛", "鈥", "�")
+        for menu in menu_texts:
+            self.assertFalse(any(marker in menu for marker in mojibake_markers))
+        for line in self.installer.main_menu_text().splitlines():
+            if line.startswith("|"):
+                self.assertTrue(line.isascii(), line)
 
     def test_main_menu_hides_internal_implementation_modules(self):
         menu = self.installer.main_menu_text()
