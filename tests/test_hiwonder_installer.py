@@ -44,14 +44,26 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertEqual(self.installer.ROS_DISTRO, "humble")
         self.assertEqual(self.installer.OPENCV_VERSION, "4.11.0")
 
-    def test_main_menu_is_bilingual_and_has_clean_hiwonder_wordmark(self):
+    def test_main_menu_is_bilingual_and_uses_compact_installer_layout(self):
         menu = self.installer.main_menu_text()
         self.assertIn("HiWonder", menu)
-        self.assertIn("H I W O N D E R", menu)
-        self.assertIn("Install ROS 2 Humble", menu)
+        self.assertIn("HiWonder 一键安装工具 / HiWonder one-click installer", menu)
+        self.assertIn("============================================================", menu)
+        self.assertIn(
+            "[1] 安装 ROS 2 Humble Desktop / Install ROS 2 Humble Desktop",
+            menu,
+        )
+        self.assertIn(
+            "[2] 配置 Ubuntu 系统源 / Configure Ubuntu apt source",
+            menu,
+        )
         self.assertIn("安装 ROS 2 Humble", menu)
         self.assertIn("[5]", menu)
         self.assertIn("[0]", menu)
+        self.assertNotIn("H I W O N D E R", menu)
+
+    def test_main_menu_prompt_matches_compact_interactive_style(self):
+        self.assertIn("请选择 / Select [5]:", self.installer.MAIN_MENU_PROMPT)
 
     def test_framed_brand_area_is_ascii_and_menu_text_has_no_mojibake(self):
         menu_texts = (

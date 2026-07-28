@@ -37,30 +37,20 @@ bash hiwonder all --mirror aliyun
 bash hiwonder
 ```
 
-菜单顶部显示固定宽度的 HiWonder ASCII 字标，选项使用中英文上下两行显示：
+菜单采用简洁的数字菜单风格，交互终端会使用青色标题和黄色选择提示：
 
 ```text
-+------------------------------------------------------------+
-|                      H I W O N D E R                       |
-|   #   #  #####  #   #   ###   #   #  ####   #####  ####    |
-|   ##  #    #    # # #  #   #  ##  #  #   #  #      #   #   |
-|   # # #    #    # # #  #   #  # # #  #   #  ####   ####    |
-|   #  ##    #    ## ##  #   #  #  ##  #   #  #      #  #    |
-|   #   #  #####  #   #   ###   #   #  ####   #####  #   #   |
-|               ROS 2 Humble  |  OpenCV 4.11.0               |
-+------------------------------------------------------------+
-
-  [1] 安装 ROS 2 Humble
-      Install ROS 2 Humble
-  [2] 配置 Ubuntu 系统源
-      Configure Ubuntu apt source
-  [3] 安装 OpenCV 4.11.0
-      Install OpenCV 4.11.0
-  [4] 配置 ROS / OpenCV 环境
-      Configure ROS / OpenCV environment
-  [5] 一键安装完整环境
-      Install complete environment
-  [0] 退出 / Exit
+============================================================
+        HiWonder 一键安装工具 / HiWonder one-click installer
+        ROS 2 Humble  |  OpenCV 4.11.0
+------------------------------------------------------------
+[1] 安装 ROS 2 Humble Desktop / Install ROS 2 Humble Desktop
+[2] 配置 Ubuntu 系统源 / Configure Ubuntu apt source
+[3] 安装 OpenCV 4.11.0 / Install OpenCV 4.11.0
+[4] 配置 ROS / OpenCV 环境 / Configure environment
+[5] 一键安装完整环境 / Install complete environment
+[0] 退出 / Exit
+============================================================
 ```
 
 `common`、`vision`、`verify` 是后台步骤，不会出现在主菜单中。选择完整环境后，它们会自动按顺序执行。

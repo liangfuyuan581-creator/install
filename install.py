@@ -116,27 +116,27 @@ MODULE_DESCRIPTIONS = {
     "verify": "Verify ROS 2, OpenCV, and cv_bridge installation",
 }
 
-MENU_INNER_WIDTH = 58
-HIWONDER_WORDMARK = (
-    "#   #  #####  #   #   ###   #   #  ####   #####  ####",
-    "##  #    #    # # #  #   #  ##  #  #   #  #      #   #",
-    "# # #    #    # # #  #   #  # # #  #   #  ####   ####",
-    "#  ##    #    ## ##  #   #  #  ##  #   #  #      #  #",
-    "#   #  #####  #   #   ###   #   #  ####   #####  #   #",
-)
+MENU_SEPARATOR = "=" * 60
+MENU_SUBSEPARATOR = "-" * 60
+MAIN_MENU_PROMPT = "请选择 / Select [5]: "
+ANSI_CYAN = "\033[1;36m"
+ANSI_YELLOW = "\033[1;33m"
+ANSI_RESET = "\033[0m"
 
 
-def _boxed_menu_line(content: str = "") -> str:
-    return f"| {content.center(MENU_INNER_WIDTH)} |"
+def terminal_color(text: str, color: str) -> str:
+    if os.environ.get("NO_COLOR") or not sys.stdout.isatty():
+        return text
+    return f"{color}{text}{ANSI_RESET}"
 
 
 HIWONDER_LOGO = "\n".join(
     [
-        "+" + "-" * (MENU_INNER_WIDTH + 2) + "+",
-        _boxed_menu_line("H I W O N D E R"),
-        *(_boxed_menu_line(line) for line in HIWONDER_WORDMARK),
-        _boxed_menu_line("ROS 2 Humble  |  OpenCV 4.11.0"),
-        "+" + "-" * (MENU_INNER_WIDTH + 2) + "+",
+        "",
+        MENU_SEPARATOR,
+        "        HiWonder 一键安装工具 / HiWonder one-click installer",
+        "        ROS 2 Humble  |  OpenCV 4.11.0",
+        MENU_SUBSEPARATOR,
     ]
 )
 
@@ -154,59 +154,62 @@ OPENCV_MENU_CHOICES = {"1": False, "2": True, "0": None}
 def main_menu_text() -> str:
     return "\n".join(
         [
-            "",
             HIWONDER_LOGO,
-            "",
-            "HiWonder 一键安装工具 / HiWonder one-click installer",
-            "Target / 目标: Ubuntu 22.04",
-            "ROS: ROS 2 Humble",
-            "OpenCV: 4.11.0",
-            "",
-            "  [1] 安装 ROS 2 Humble",
-            "      Install ROS 2 Humble",
-            "  [2] 配置 Ubuntu 系统源",
-            "      Configure Ubuntu apt source",
-            "  [3] 安装 OpenCV 4.11.0",
-            "      Install OpenCV 4.11.0",
-            "  [4] 配置 ROS / OpenCV 环境",
-            "      Configure ROS / OpenCV environment",
-            "  [5] 一键安装完整环境",
-            "      Install complete environment",
-            "  [0] 退出 / Exit",
-            "",
+            "[1] 安装 ROS 2 Humble Desktop / Install ROS 2 Humble Desktop",
+            "[2] 配置 Ubuntu 系统源 / Configure Ubuntu apt source",
+            "[3] 安装 OpenCV 4.11.0 / Install OpenCV 4.11.0",
+            "[4] 配置 ROS / OpenCV 环境 / Configure environment",
+            "[5] 一键安装完整环境 / Install complete environment",
+            "[0] 退出 / Exit",
+            MENU_SEPARATOR,
         ]
     )
 
 
 def mirror_menu_text() -> str:
-    return (
-        "\n"
-        "Ubuntu 系统源 / Ubuntu apt source\n"
-        "[1] 官方源 / official\n"
-        "[2] 阿里云 / aliyun\n"
-        "[3] 清华 / tsinghua\n"
-        "[4] 中科大 / ustc\n"
-        "[0] 返回 / Back\n"
+    return "\n".join(
+        [
+            "",
+            MENU_SEPARATOR,
+            "Ubuntu 系统源 / Ubuntu apt source",
+            MENU_SUBSEPARATOR,
+            "[1] 官方源 / official",
+            "[2] 阿里云 / aliyun",
+            "[3] 清华 / tsinghua",
+            "[4] 中科大 / ustc",
+            "[0] 返回 / Back",
+            MENU_SEPARATOR,
+        ]
     )
 
 
 def ros_menu_text() -> str:
-    return (
-        "\n"
-        "ROS 2 Humble 安装类型 / ROS 2 Humble installation\n"
-        "[1] Desktop 完整版 / Desktop\n"
-        "[2] 基础版 / Base\n"
-        "[0] 返回 / Back\n"
+    return "\n".join(
+        [
+            "",
+            MENU_SEPARATOR,
+            "ROS 2 Humble 安装类型 / ROS 2 Humble installation",
+            MENU_SUBSEPARATOR,
+            "[1] Desktop 完整版 / Desktop",
+            "[2] 基础版 / Base",
+            "[0] 返回 / Back",
+            MENU_SEPARATOR,
+        ]
     )
 
 
 def opencv_menu_text() -> str:
-    return (
-        "\n"
-        "OpenCV 安装类型 / OpenCV installation\n"
-        "[1] OpenCV 4.11.0\n"
-        "[2] OpenCV 4.11.0 + opencv_contrib\n"
-        "[0] 返回 / Back\n"
+    return "\n".join(
+        [
+            "",
+            MENU_SEPARATOR,
+            "OpenCV 安装类型 / OpenCV installation",
+            MENU_SUBSEPARATOR,
+            "[1] OpenCV 4.11.0",
+            "[2] OpenCV 4.11.0 + opencv_contrib",
+            "[0] 返回 / Back",
+            MENU_SEPARATOR,
+        ]
     )
 
 
@@ -367,20 +370,20 @@ def read_choice(prompt: str, choices: dict[str, object]) -> str:
 
 
 def choose_mirror() -> str | None:
-    print(mirror_menu_text())
-    choice = read_choice("Select / 选择 [1]: ", MIRROR_MENU_CHOICES)
+    print(terminal_color(mirror_menu_text(), ANSI_CYAN))
+    choice = read_choice("请选择 / Select [1]: ", MIRROR_MENU_CHOICES)
     return MIRROR_MENU_CHOICES[choice]
 
 
 def choose_ros_mode() -> str | None:
-    print(ros_menu_text())
-    choice = read_choice("Select / 选择 [1]: ", ROS_MENU_CHOICES)
+    print(terminal_color(ros_menu_text(), ANSI_CYAN))
+    choice = read_choice("请选择 / Select [1]: ", ROS_MENU_CHOICES)
     return ROS_MENU_CHOICES[choice]
 
 
 def choose_opencv_contrib() -> bool | None:
-    print(opencv_menu_text())
-    choice = read_choice("Select / 选择 [2]: ", OPENCV_MENU_CHOICES)
+    print(terminal_color(opencv_menu_text(), ANSI_CYAN))
+    choice = read_choice("请选择 / Select [2]: ", OPENCV_MENU_CHOICES)
     return OPENCV_MENU_CHOICES[choice]
 
 
@@ -533,9 +536,9 @@ def print_plan(modules: list[str]) -> None:
 
 def interactive_menu() -> int:
     while True:
-        print(main_menu_text())
+        print(terminal_color(main_menu_text(), ANSI_CYAN))
         choice = read_choice(
-            "Select / 选择 [5]: ",
+            terminal_color(MAIN_MENU_PROMPT, ANSI_YELLOW),
             {"1": True, "2": True, "3": True, "4": True, "5": True, "0": True},
         )
         if choice == "0":
