@@ -133,10 +133,13 @@ def terminal_color(text: str, color: str) -> str:
 HIWONDER_LOGO = "\n".join(
     [
         "",
-        MENU_SEPARATOR,
-        "        HiWonder 一键安装工具 / HiWonder one-click installer",
-        "        ROS 2 Humble  |  OpenCV 4.11.0",
-        MENU_SUBSEPARATOR,
+        "  @   @  @@@@   @   @   @@@   @   @  @@@@   @@@@@  @@@@",
+        "  @   @   @     @@ @@  @   @  @@  @  @   @  @      @   @",
+        "  @@@@@   @     @ @ @  @   @  @ @ @  @   @  @@@@   @@@@",
+        "  @   @   @     @   @  @   @  @  @@  @   @  @      @  @",
+        "  @   @  @@@@   @   @   @@@   @   @  @@@@   @@@@@  @   @",
+        "                 H I W O N D E R",
+        "",
     ]
 )
 
@@ -155,6 +158,10 @@ def main_menu_text() -> str:
     return "\n".join(
         [
             HIWONDER_LOGO,
+            MENU_SEPARATOR,
+            "        HiWonder 一键安装工具 / HiWonder one-click installer",
+            "        ROS 2 Humble  |  OpenCV 4.11.0",
+            MENU_SUBSEPARATOR,
             "[1] 安装 ROS 2 Humble Desktop / Install ROS 2 Humble Desktop",
             "[2] 配置 Ubuntu 系统源 / Configure Ubuntu apt source",
             "[3] 安装 OpenCV 4.11.0 / Install OpenCV 4.11.0",

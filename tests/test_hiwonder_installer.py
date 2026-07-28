@@ -60,10 +60,17 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertIn("安装 ROS 2 Humble", menu)
         self.assertIn("[5]", menu)
         self.assertIn("[0]", menu)
-        self.assertNotIn("H I W O N D E R", menu)
+        self.assertIn("H I W O N D E R", menu)
 
     def test_main_menu_prompt_matches_compact_interactive_style(self):
         self.assertIn("请选择 / Select [5]:", self.installer.MAIN_MENU_PROMPT)
+
+    def test_hiwonder_logo_is_a_readable_ascii_wordmark(self):
+        logo = self.installer.HIWONDER_LOGO
+        self.assertTrue(logo.isascii())
+        self.assertIn("H I W O N D E R", logo)
+        self.assertIn("@@@@", logo)
+        self.assertNotIn("_   _ _  __", logo)
 
     def test_framed_brand_area_is_ascii_and_menu_text_has_no_mojibake(self):
         menu_texts = (
