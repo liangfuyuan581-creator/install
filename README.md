@@ -16,7 +16,16 @@
 ```bash
 export HIWONDER_URL=https://raw.githubusercontent.com/liangfuyuan581-creator/install/hiwonder-ros2-opencv
 wget -O hiwonder "${HIWONDER_URL}/install?cache=$(date +%s)"
-bash hiwonder --plan
+
+# 显示中英文交互菜单，然后输入 1、2、3、4、5 或 0
+bash hiwonder
+```
+
+`bash hiwonder --plan` 只显示安装计划，不会打开选择菜单；需要交互选择时不要加 `--plan`。
+
+也可以直接执行完整安装：
+
+```bash
 bash hiwonder all --mirror official
 ```
 
