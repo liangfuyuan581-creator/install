@@ -28,7 +28,7 @@ EOF
 fi
 
 HIWONDER_URL="${HIWONDER_URL:-https://raw.githubusercontent.com/liangfuyuan581-creator/install/hiwonder-ros2-opencv}"
-HIWONDER_DIR="${HIWONDER_DIR:-/tmp/hiwonder-install}"
+HIWONDER_DIR="${HIWONDER_DIR:-/tmp/hiwonder-install-${EUID}}"
 HIWONDER_CACHE_BUSTER="${HIWONDER_CACHE_BUSTER:-$(date +%s)}"
 
 if [[ "${EUID}" -eq 0 ]]; then
