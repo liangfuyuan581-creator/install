@@ -119,6 +119,20 @@ docker build --build-arg HIWONDER_MIRROR=aliyun -t hiwonder-ros2-humble:22.04 .
 
 这个镜像提供完整的命令行和 ROS 开发环境。桌面、GNOME、NoMachine 属于 Docker 运行层配置，不由这个安装器强制安装。
 
+在 Docker 容器中执行安装器时，建议使用 root 用户，因为安装过程需要修改 `/etc/apt`、`/opt/hiwonder` 和 `/etc/profile.d`。如果你当前进入容器后显示的是 `hiwonder@...`，请从 Windows PowerShell 重新以 root 进入：
+
+```powershell
+docker exec -u 0 -it hiwonder-ros2-humble bash
+```
+
+进入 root shell 后执行：
+
+```bash
+bash /home/hiwonder/Desktop/hiwonder
+```
+
+安装器检测到 Docker 中没有 root 或免密 sudo 权限时，会在开始阶段直接显示这条处理方式，不再执行到中途才要求未知的 sudo 密码。
+
 ## 开发和测试
 
 新模块应加入 `install.py` 的 `MODULES` 注册表，并为纯配置逻辑增加测试。运行测试：

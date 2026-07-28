@@ -44,6 +44,13 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertIn('export PYTHONIOENCODING="UTF-8"', bootstrap)
         self.assertIn("stty iutf8", bootstrap)
 
+    def test_bootstrap_explains_root_requirement_for_non_passwordless_docker_users(self):
+        bootstrap = (ROOT / "install").read_text(encoding="utf-8")
+        self.assertIn("/.dockerenv", bootstrap)
+        self.assertIn("sudo -n -v", bootstrap)
+        self.assertIn("docker exec -u 0 -it", bootstrap)
+        self.assertIn("Root privileges are required inside Docker", bootstrap)
+
     def test_interactive_menu_remains_readable_with_ascii_parent_encoding(self):
         environment = os.environ.copy()
         environment.update(

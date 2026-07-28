@@ -10,6 +10,23 @@ if [[ -t 1 ]]; then
     stty iutf8 2>/dev/null || true
 fi
 
+is_docker_container() {
+    [[ -f "/.dockerenv" ]] || grep -qaE '(docker|containerd|kubepods)' /proc/1/cgroup 2>/dev/null
+}
+
+if [[ "${EUID}" -ne 0 ]] && is_docker_container; then
+    if ! command -v sudo >/dev/null 2>&1 || ! sudo -n -v >/dev/null 2>&1; then
+        cat >&2 <<'EOF'
+[HiWonder] Root privileges are required inside Docker.
+[HiWonder] The current container user has no passwordless sudo permission.
+[HiWonder] Run this from Windows PowerShell, then start the installer as root:
+  docker exec -u 0 -it hiwonder-ros2-humble bash
+  bash /home/hiwonder/Desktop/hiwonder
+EOF
+        exit 1
+    fi
+fi
+
 HIWONDER_URL="${HIWONDER_URL:-https://raw.githubusercontent.com/liangfuyuan581-creator/install/hiwonder-ros2-opencv}"
 HIWONDER_DIR="${HIWONDER_DIR:-/tmp/hiwonder-install}"
 HIWONDER_CACHE_BUSTER="${HIWONDER_CACHE_BUSTER:-$(date +%s)}"
