@@ -329,6 +329,45 @@ def ros2_repository_text(codename: str, architecture: str) -> str:
     )
 
 
+def disable_conflicting_ros_sources(
+    source_directory: Path,
+    target: Path,
+    *,
+    dry_run: bool = False,
+) -> list[Path]:
+    """Disable older ROS 2 source definitions that use a different key format."""
+    if not source_directory.exists():
+        return []
+
+    disabled: list[Path] = []
+    for candidate in sorted(source_directory.iterdir()):
+        if (
+            not candidate.is_file()
+            or candidate == target
+            or candidate.name.endswith(".hiwonder-disabled")
+        ):
+            continue
+        try:
+            content = candidate.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        if "packages.ros.org/ros2/ubuntu" not in content:
+            continue
+
+        destination = candidate.with_name(candidate.name + ".hiwonder-disabled")
+        suffix = 1
+        while destination.exists():
+            destination = candidate.with_name(
+                f"{candidate.name}.hiwonder-disabled.{suffix}"
+            )
+            suffix += 1
+        print(f"[HiWonder] Disabling conflicting ROS source: {candidate}")
+        if not dry_run:
+            candidate.rename(destination)
+        disabled.append(destination)
+    return disabled
+
+
 def opencv_source_commands(*, with_contrib: bool = True) -> list[str]:
     commands = [
         f"git clone --branch {OPENCV_VERSION} --depth 1 https://github.com/opencv/opencv.git {OPENCV_SOURCE}",
@@ -412,6 +451,11 @@ def write_privileged_file(path: PurePosixPath, content: str, *, dry_run: bool = 
 
 
 def install_common(*, dry_run: bool = False) -> None:
+    disable_conflicting_ros_sources(
+        Path("/etc/apt/sources.list.d"),
+        Path("/etc/apt/sources.list.d/ros2.list"),
+        dry_run=dry_run,
+    )
     apt_install(COMMON_PACKAGES, dry_run=dry_run)
     run("locale-gen en_US.UTF-8", dry_run=dry_run, check=False)
 
@@ -483,6 +527,11 @@ def install_ros2(*, dry_run: bool = False, desktop: bool = True) -> None:
     list_path = PurePosixPath("/etc/apt/sources.list.d/ros2.list")
     architecture = ubuntu_architecture()
     repository = ros2_repository_text(ubuntu_codename(), architecture)
+    disable_conflicting_ros_sources(
+        Path(str(list_path.parent)),
+        Path(str(list_path)),
+        dry_run=dry_run,
+    )
     run(f"{command_prefix()}mkdir -p {key_path.parent}", dry_run=dry_run)
     run(
         "curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key "
@@ -492,11 +541,11 @@ def install_ros2(*, dry_run: bool = False, desktop: bool = True) -> None:
     print(f"\n[HiWonder] Writing ROS 2 apt source: {list_path}")
     write_privileged_file(list_path, repository, dry_run=dry_run)
     apt_install(ROS_PACKAGES if desktop else ROS_BASE_PACKAGES, dry_run=dry_run)
-    run(
-        f"{command_prefix()}rosdep init",
-        dry_run=dry_run,
-        check=False,
-    )
+    rosdep_defaults = Path("/etc/ros/rosdep/sources.list.d/20-default.list")
+    if dry_run or not rosdep_defaults.exists():
+        run(f"{command_prefix()}rosdep init", dry_run=dry_run)
+    else:
+        print(f"[HiWonder] rosdep is already initialized: {rosdep_defaults}")
     run("rosdep update", dry_run=dry_run, check=False)
 
 
@@ -569,6 +618,8 @@ def verify_installation(*, dry_run: bool = False) -> None:
         f"test -f {OPENCV_PREFIX}/lib/cmake/opencv4/OpenCVConfig.cmake",
         f"source {ENV_FILE} && printenv HIWONDER_OPENCV_VERSION",
         f"source {ENV_FILE} && python3 -c 'import cv2; assert cv2.__version__.startswith(\"{OPENCV_VERSION}\"); print(cv2.__version__)'",
+        f"source {ENV_FILE} && ros2 pkg prefix cv_bridge",
+        f"source {ENV_FILE} && python3 -c 'import cv_bridge; print(cv_bridge.__file__)'",
     ]
     for command in commands:
         run(command, dry_run=dry_run)

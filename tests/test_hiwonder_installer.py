@@ -3,7 +3,9 @@ import os
 import pathlib
 import subprocess
 import sys
+import tempfile
 import unittest
+from unittest import mock
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -208,6 +210,77 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertIn("packages.ros.org/ros2/ubuntu", repository)
         self.assertNotIn("packages.ros.org/ros/ubuntu", repository)
         self.assertNotIn("ros1", repository.lower())
+
+    def test_disables_conflicting_ros_source_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source_directory = pathlib.Path(directory)
+            target = source_directory / "ros2.list"
+            target.write_text(
+                "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] "
+                "http://packages.ros.org/ros2/ubuntu jammy main\n",
+                encoding="utf-8",
+            )
+            conflict = source_directory / "ros2.sources"
+            conflict.write_text(
+                "Types: deb\n"
+                "URIs: http://packages.ros.org/ros2/ubuntu\n"
+                "Suites: jammy\n"
+                "Components: main\n"
+                "Signed-By: -----BEGIN PGP PUBLIC KEY BLOCK-----\n",
+                encoding="utf-8",
+            )
+            unrelated = source_directory / "unrelated.list"
+            unrelated.write_text(
+                "deb http://archive.ubuntu.com/ubuntu jammy main\n",
+                encoding="utf-8",
+            )
+
+            disabled = self.installer.disable_conflicting_ros_sources(
+                source_directory,
+                target,
+            )
+
+            self.assertEqual(disabled, [source_directory / "ros2.sources.hiwonder-disabled"])
+            self.assertFalse(conflict.exists())
+            self.assertTrue(disabled[0].exists())
+            self.assertTrue(target.exists())
+            self.assertTrue(unrelated.exists())
+
+    def test_common_stage_cleans_ros_sources_before_apt(self):
+        with mock.patch.object(self.installer, "disable_conflicting_ros_sources") as cleanup:
+            with mock.patch.object(self.installer, "apt_install"):
+                with mock.patch.object(self.installer, "run"):
+                    self.installer.install_common(dry_run=True)
+
+        cleanup.assert_called_once()
+
+    def test_ros2_init_is_skipped_when_rosdep_defaults_exist(self):
+        with mock.patch.object(self.installer, "require_ubuntu_jammy"):
+            with mock.patch.object(self.installer, "ubuntu_architecture", return_value="amd64"):
+                with mock.patch.object(self.installer, "ubuntu_codename", return_value="jammy"):
+                    with mock.patch.object(self.installer, "disable_conflicting_ros_sources"):
+                        with mock.patch.object(self.installer, "write_privileged_file"):
+                            with mock.patch.object(self.installer, "apt_install"):
+                                with mock.patch.object(self.installer, "command_prefix", return_value=""):
+                                    with mock.patch.object(self.installer, "run") as run:
+                                        with mock.patch.object(
+                                            self.installer.Path,
+                                            "exists",
+                                            return_value=True,
+                                        ):
+                                            self.installer.install_ros2(dry_run=False)
+
+        commands = [call.args[0] for call in run.call_args_list]
+        self.assertNotIn("rosdep init", commands)
+        self.assertIn("rosdep update", commands)
+
+    def test_verify_checks_cv_bridge(self):
+        with mock.patch.object(self.installer, "run") as run:
+            self.installer.verify_installation(dry_run=True)
+
+        commands = [call.args[0] for call in run.call_args_list]
+        self.assertTrue(any("ros2 pkg prefix cv_bridge" in command for command in commands))
+        self.assertTrue(any("import cv_bridge" in command for command in commands))
 
     def test_environment_script_selects_humble_and_custom_opencv(self):
         script = self.installer.environment_script()
