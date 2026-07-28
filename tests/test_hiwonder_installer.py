@@ -98,18 +98,20 @@ class HiWonderInstallerTests(unittest.TestCase):
 
     def test_hiwonder_logo_is_a_readable_ascii_wordmark(self):
         logo = self.installer.HIWONDER_LOGO
-        self.assertIn("█", logo)
+        self.assertNotIn("█", logo)
+        self.assertTrue(logo.isascii())
+        self.assertIn("##", logo)
         self.assertIn("H I W O N D E R", logo)
-        self.assertIn("| ██  ██  ██████  ██  ██", logo)
+        self.assertIn("|  ##   ##  #######  ##   ##", logo)
         self.assertIn("+", logo)
         self.assertNotIn("@@@@", logo)
         self.assertNotIn("_   _ _  __", logo)
         self.assertNotIn("�", logo)
         self.assertGreaterEqual(len(logo.splitlines()), 10)
-        self.assertLessEqual(max(map(len, logo.splitlines())), 75)
+        self.assertLessEqual(max(map(len, logo.splitlines())), 78)
         self.assertTrue(all(not line.endswith(" ") for line in logo.splitlines()))
         self.assertTrue(
-            all(len(line) == 66 for line in logo.splitlines() if line)
+            all(len(line) == 76 for line in logo.splitlines() if line)
         )
 
     def test_framed_brand_area_is_ascii_and_menu_text_has_no_mojibake(self):
