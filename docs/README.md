@@ -19,6 +19,17 @@ bash hiwonder all --mirror official
 
 ## 模块
 
+直接运行 `bash hiwonder` 会进入中英文并列的数字菜单。主菜单只显示用户功能，基础依赖、`cv_bridge` 和验证步骤会在后台自动执行。
+
+```text
+[1] 安装 ROS 2 Humble / Install ROS 2 Humble
+[2] 配置 Ubuntu 系统源 / Configure Ubuntu apt source
+[3] 安装 OpenCV 4.11.0 / Install OpenCV 4.11.0
+[4] 配置 ROS / OpenCV 环境 / Configure environment
+[5] 一键安装完整环境 / Install complete environment
+[0] 退出 / Exit
+```
+
 | 模块 | 作用 |
 | --- | --- |
 | `common` | 通用依赖 |

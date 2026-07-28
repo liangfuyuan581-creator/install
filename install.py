@@ -103,6 +103,7 @@ ROS_PACKAGES = [
     "ros-humble-trajectory-msgs",
     "ros-humble-control-msgs",
 ]
+ROS_BASE_PACKAGES = [package for package in ROS_PACKAGES if package != "ros-humble-desktop"]
 
 ALL_MODULES = ["common", "source", "ros2", "opencv", "vision", "env", "verify"]
 MODULE_DESCRIPTIONS = {
@@ -114,6 +115,79 @@ MODULE_DESCRIPTIONS = {
     "env": "Generate ROS 2 and OpenCV environment settings",
     "verify": "Verify ROS 2, OpenCV, and cv_bridge installation",
 }
+
+HIWONDER_LOGO = r"""
+ _   _ _  __        _    _
+| | | (_)/ _|      | |  | |
+| |_| | | |_  ___  | |  | | __      _____  _ __ ___
+|  _  | |  _|/ _ \ | |  | | \ \ /\ / / _ \| '__/ _ \
+| | | | | | |  __/ | |__| |  \ V  V / (_) | | |  __/
+\_| |_/_|_|  \___|  \____/    \_/\_/ \___/|_|  \___|
+"""
+
+MIRROR_MENU_CHOICES = {
+    "1": "official",
+    "2": "aliyun",
+    "3": "tsinghua",
+    "4": "ustc",
+    "0": None,
+}
+ROS_MENU_CHOICES = {"1": "desktop", "2": "base", "0": None}
+OPENCV_MENU_CHOICES = {"1": False, "2": True, "0": None}
+
+
+def main_menu_text() -> str:
+    return textwrap.dedent(
+        f"""\
+        {HIWONDER_LOGO}
+        +======================================================+
+        | HiWonder 一键安装工具 / HiWonder one-click installer |
+        +======================================================+
+        | Target: Ubuntu 22.04                               |
+        | ROS: ROS 2 Humble                                  |
+        | OpenCV: 4.11.0                                     |
+        +------------------------------------------------------+
+        | [1] 安装 ROS 2 Humble / Install ROS 2 Humble         |
+        | [2] 配置 Ubuntu 系统源 / Configure Ubuntu apt source|
+        | [3] 安装 OpenCV 4.11.0 / Install OpenCV 4.11.0      |
+        | [4] 配置 ROS / OpenCV 环境 / Configure environment  |
+        | [5] 一键安装完整环境 / Install complete environment |
+        | [0] 退出 / Exit                                     |
+        +======================================================+
+        """
+    )
+
+
+def mirror_menu_text() -> str:
+    return (
+        "\n"
+        "Ubuntu 系统源 / Ubuntu apt source\n"
+        "[1] 官方源 / official\n"
+        "[2] 阿里云 / aliyun\n"
+        "[3] 清华 / tsinghua\n"
+        "[4] 中科大 / ustc\n"
+        "[0] 返回 / Back\n"
+    )
+
+
+def ros_menu_text() -> str:
+    return (
+        "\n"
+        "ROS 2 Humble 安装类型 / ROS 2 Humble installation\n"
+        "[1] Desktop 完整版 / Desktop\n"
+        "[2] 基础版 / Base\n"
+        "[0] 返回 / Back\n"
+    )
+
+
+def opencv_menu_text() -> str:
+    return (
+        "\n"
+        "OpenCV 安装类型 / OpenCV installation\n"
+        "[1] OpenCV 4.11.0\n"
+        "[2] OpenCV 4.11.0 + opencv_contrib\n"
+        "[0] 返回 / Back\n"
+    )
 
 
 def command_prefix() -> str:
@@ -174,21 +248,26 @@ def ros2_repository_text(codename: str, architecture: str) -> str:
     )
 
 
-def opencv_source_commands() -> list[str]:
-    return [
+def opencv_source_commands(*, with_contrib: bool = True) -> list[str]:
+    commands = [
         f"git clone --branch {OPENCV_VERSION} --depth 1 https://github.com/opencv/opencv.git {OPENCV_SOURCE}",
-        f"git clone --branch {OPENCV_VERSION} --depth 1 https://github.com/opencv/opencv_contrib.git {OPENCV_CONTRIB_SOURCE}",
         f"git -C {OPENCV_SOURCE} checkout {OPENCV_VERSION}",
-        f"git -C {OPENCV_CONTRIB_SOURCE} checkout {OPENCV_VERSION}",
     ]
+    if with_contrib:
+        commands.extend(
+            [
+                f"git clone --branch {OPENCV_VERSION} --depth 1 https://github.com/opencv/opencv_contrib.git {OPENCV_CONTRIB_SOURCE}",
+                f"git -C {OPENCV_CONTRIB_SOURCE} checkout {OPENCV_VERSION}",
+            ]
+        )
+    return commands
 
 
-def opencv_cmake_args() -> list[str]:
-    return [
+def opencv_cmake_args(*, with_contrib: bool = True) -> list[str]:
+    args = [
         "-G Ninja",
         "-DCMAKE_BUILD_TYPE=Release",
         f"-DCMAKE_INSTALL_PREFIX={OPENCV_PREFIX}",
-        f"-DOPENCV_EXTRA_MODULES_PATH={OPENCV_CONTRIB_SOURCE}/modules",
         "-DOPENCV_ENABLE_NONFREE=ON",
         "-DBUILD_TESTS=OFF",
         "-DBUILD_PERF_TESTS=OFF",
@@ -201,6 +280,9 @@ def opencv_cmake_args() -> list[str]:
         "-DWITH_OPENGL=ON",
         "-DOPENCV_GENERATE_PKGCONFIG=ON",
     ]
+    if with_contrib:
+        args.insert(3, f"-DOPENCV_EXTRA_MODULES_PATH={OPENCV_CONTRIB_SOURCE}/modules")
+    return args
 
 
 def environment_script() -> str:
@@ -253,6 +335,35 @@ def install_common(*, dry_run: bool = False) -> None:
     run("locale-gen en_US.UTF-8", dry_run=dry_run, check=False)
 
 
+def read_choice(prompt: str, choices: dict[str, object]) -> str:
+    while True:
+        try:
+            choice = input(prompt).strip()
+        except EOFError:
+            return "0"
+        if choice in choices:
+            return choice
+        print("Invalid choice / 无效选项，请重新输入 / please try again.")
+
+
+def choose_mirror() -> str | None:
+    print(mirror_menu_text())
+    choice = read_choice("Select / 选择 [1]: ", MIRROR_MENU_CHOICES)
+    return MIRROR_MENU_CHOICES[choice]
+
+
+def choose_ros_mode() -> str | None:
+    print(ros_menu_text())
+    choice = read_choice("Select / 选择 [1]: ", ROS_MENU_CHOICES)
+    return ROS_MENU_CHOICES[choice]
+
+
+def choose_opencv_contrib() -> bool | None:
+    print(opencv_menu_text())
+    choice = read_choice("Select / 选择 [2]: ", OPENCV_MENU_CHOICES)
+    return OPENCV_MENU_CHOICES[choice]
+
+
 def configure_sources(*, mirror: str | None = None, dry_run: bool = False) -> None:
     mirrors = {
         "official": "http://archive.ubuntu.com/ubuntu",
@@ -262,15 +373,9 @@ def configure_sources(*, mirror: str | None = None, dry_run: bool = False) -> No
     }
     mirror = mirror or os.environ.get("HIWONDER_UBUNTU_MIRROR")
     if mirror is None and not dry_run:
-        print("\nSelect an Ubuntu apt mirror:")
-        options = list(mirrors)
-        for index, name in enumerate(options, 1):
-            print(f"  {index}. {name} ({mirrors[name]})")
-        choice = input("Select [1]: ").strip() or "1"
-        try:
-            mirror = options[int(choice) - 1]
-        except (ValueError, IndexError):
-            raise RuntimeError("Invalid apt mirror selection")
+        mirror = choose_mirror()
+        if mirror is None:
+            return
     mirror = mirror or "official"
     if mirror not in mirrors:
         raise RuntimeError(f"Unsupported apt mirror: {mirror}")
@@ -291,7 +396,7 @@ def configure_sources(*, mirror: str | None = None, dry_run: bool = False) -> No
     run(f"{command_prefix()}apt-get update")
 
 
-def install_ros2(*, dry_run: bool = False) -> None:
+def install_ros2(*, dry_run: bool = False, desktop: bool = True) -> None:
     require_ubuntu_jammy()
     key_path = PurePosixPath("/usr/share/keyrings/ros-archive-keyring.gpg")
     list_path = PurePosixPath("/etc/apt/sources.list.d/ros2.list")
@@ -305,7 +410,7 @@ def install_ros2(*, dry_run: bool = False) -> None:
     )
     print(f"\n[HiWonder] Writing ROS 2 apt source: {list_path}")
     write_privileged_file(list_path, repository, dry_run=dry_run)
-    apt_install(ROS_PACKAGES, dry_run=dry_run)
+    apt_install(ROS_PACKAGES if desktop else ROS_BASE_PACKAGES, dry_run=dry_run)
     run(
         f"{command_prefix()}rosdep init",
         dry_run=dry_run,
@@ -328,7 +433,7 @@ def clone_or_update(url: str, tag: str, destination: PurePosixPath, *, dry_run: 
     )
 
 
-def install_opencv(*, dry_run: bool = False) -> None:
+def install_opencv(*, dry_run: bool = False, with_contrib: bool = True) -> None:
     apt_install(OPENCV_PACKAGES, dry_run=dry_run)
     if not dry_run:
         Path(str(PREFIX / "src")).mkdir(parents=True, exist_ok=True)
@@ -338,16 +443,17 @@ def install_opencv(*, dry_run: bool = False) -> None:
         OPENCV_SOURCE,
         dry_run=dry_run,
     )
-    clone_or_update(
-        "https://github.com/opencv/opencv_contrib.git",
-        OPENCV_VERSION,
-        OPENCV_CONTRIB_SOURCE,
-        dry_run=dry_run,
-    )
+    if with_contrib:
+        clone_or_update(
+            "https://github.com/opencv/opencv_contrib.git",
+            OPENCV_VERSION,
+            OPENCV_CONTRIB_SOURCE,
+            dry_run=dry_run,
+        )
     build_dir = PREFIX / "build" / f"opencv-{OPENCV_VERSION}"
     if not dry_run:
         Path(str(build_dir)).mkdir(parents=True, exist_ok=True)
-    args = " ".join(shlex.quote(item) for item in opencv_cmake_args())
+    args = " ".join(shlex.quote(item) for item in opencv_cmake_args(with_contrib=with_contrib))
     run(f"cmake -S {OPENCV_SOURCE} -B {build_dir} {args}", dry_run=dry_run)
     run(f"cmake --build {build_dir} --parallel", dry_run=dry_run)
     run(f"{command_prefix()}cmake --install {build_dir}", dry_run=dry_run)
@@ -405,21 +511,61 @@ def print_plan(modules: list[str]) -> None:
         print(f"{index}. {name}: {MODULE_DESCRIPTIONS[name]}")
 
 
-def select_modules() -> list[str]:
-    print(f"\n{PROJECT_NAME} one-click installer")
-    print("Target: Ubuntu 22.04 + ROS 2 Humble + OpenCV 4.11.0")
-    print("\nAvailable modules:")
-    print("  1. all     Install the complete environment")
-    for index, name in enumerate(ALL_MODULES, 2):
-        print(f"  {index}. {name:<7} {MODULE_DESCRIPTIONS[name]}")
-    choice = input("\nSelect [1]: ").strip() or "1"
-    if choice == "1" or choice.lower() == "all":
-        return ALL_MODULES
-    if choice.isdigit() and 2 <= int(choice) <= len(ALL_MODULES) + 1:
-        return [ALL_MODULES[int(choice) - 2]]
-    if choice in MODULES:
-        return [choice]
-    raise RuntimeError("Invalid module selection")
+def interactive_menu() -> int:
+    while True:
+        print(main_menu_text())
+        choice = read_choice(
+            "Select / 选择 [5]: ",
+            {"1": True, "2": True, "3": True, "4": True, "5": True, "0": True},
+        )
+        if choice == "0":
+            return 0
+
+        if choice == "1":
+            ros_mode = choose_ros_mode()
+            if ros_mode is None:
+                continue
+            install_common()
+            install_ros2(desktop=ros_mode == "desktop")
+            write_environment()
+            print("\nROS 2 Humble installation complete / ROS 2 Humble 安装完成")
+            return 0
+
+        if choice == "2":
+            mirror = choose_mirror()
+            if mirror is not None:
+                configure_sources(mirror=mirror)
+                print("\nUbuntu apt source configured / Ubuntu 系统源配置完成")
+                return 0
+            continue
+
+        if choice == "3":
+            with_contrib = choose_opencv_contrib()
+            if with_contrib is None:
+                continue
+            install_opencv(with_contrib=with_contrib)
+            print("\nOpenCV installation complete / OpenCV 安装完成")
+            return 0
+
+        if choice == "4":
+            write_environment()
+            print("\nEnvironment configured / 环境配置完成")
+            return 0
+
+        if choice == "5":
+            mirror = choose_mirror()
+            if mirror is None:
+                continue
+            print("\n===== HiWonder complete installation / 一键完整安装 =====")
+            configure_sources(mirror=mirror)
+            install_common()
+            install_ros2(desktop=True)
+            install_opencv(with_contrib=True)
+            install_vision()
+            write_environment()
+            verify_installation()
+            print("\nHiWonder setup complete / HiWonder 配置完成")
+            return 0
 
 
 def parse_args() -> argparse.Namespace:
@@ -438,10 +584,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    if args.module == "menu" and not args.plan:
+        return interactive_menu()
     if args.module == "all" or (args.module == "menu" and args.plan):
         modules = ALL_MODULES
-    elif args.module == "menu":
-        modules = select_modules()
     else:
         modules = [args.module]
     print_plan(modules)

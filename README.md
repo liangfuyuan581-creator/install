@@ -31,6 +31,25 @@ bash hiwonder all --mirror aliyun
 
 ## 分模块执行
 
+直接运行安装器会进入类似鱼香 ROS 的数字菜单：
+
+```bash
+bash hiwonder
+```
+
+菜单提供中英文并列的选项：
+
+```text
+[1] 安装 ROS 2 Humble / Install ROS 2 Humble
+[2] 配置 Ubuntu 系统源 / Configure Ubuntu apt source
+[3] 安装 OpenCV 4.11.0 / Install OpenCV 4.11.0
+[4] 配置 ROS / OpenCV 环境 / Configure environment
+[5] 一键安装完整环境 / Install complete environment
+[0] 退出 / Exit
+```
+
+`common`、`vision`、`verify` 是后台步骤，不会出现在主菜单中。选择完整环境后，它们会自动按顺序执行。
+
 ```bash
 bash hiwonder common
 bash hiwonder source --mirror aliyun

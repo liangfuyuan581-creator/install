@@ -44,6 +44,36 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertEqual(self.installer.ROS_DISTRO, "humble")
         self.assertEqual(self.installer.OPENCV_VERSION, "4.11.0")
 
+    def test_main_menu_is_bilingual_and_has_hiwonder_ascii_branding(self):
+        menu = self.installer.main_menu_text()
+        self.assertIn("HiWonder", menu)
+        self.assertIn("一键安装工具", menu)
+        self.assertIn("Install ROS 2 Humble", menu)
+        self.assertIn("安装 ROS 2 Humble", menu)
+        self.assertIn("[5]", menu)
+        self.assertIn("[0]", menu)
+        self.assertIn("_   _", menu)
+
+    def test_main_menu_hides_internal_implementation_modules(self):
+        menu = self.installer.main_menu_text()
+        self.assertNotIn("[2] common", menu)
+        self.assertNotIn("[5] vision", menu)
+        self.assertNotIn("[7] verify", menu)
+
+    def test_submenu_choices_are_user_facing_and_stable(self):
+        self.assertEqual(
+            self.installer.ROS_MENU_CHOICES,
+            {"1": "desktop", "2": "base", "0": None},
+        )
+        self.assertEqual(
+            self.installer.OPENCV_MENU_CHOICES,
+            {"1": False, "2": True, "0": None},
+        )
+        self.assertEqual(
+            self.installer.MIRROR_MENU_CHOICES,
+            {"1": "official", "2": "aliyun", "3": "tsinghua", "4": "ustc", "0": None},
+        )
+
     def test_all_has_a_stable_install_order(self):
         self.assertEqual(
             self.installer.ALL_MODULES,
