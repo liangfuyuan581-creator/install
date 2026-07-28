@@ -48,8 +48,14 @@ class HiWonderInstallerTests(unittest.TestCase):
         bootstrap = (ROOT / "install").read_text(encoding="utf-8")
         self.assertIn("/.dockerenv", bootstrap)
         self.assertIn("sudo -n -v", bootstrap)
+        self.assertIn('[[ "$#" -gt 0 ]]', bootstrap)
         self.assertIn("docker exec -u 0 -it", bootstrap)
         self.assertIn("Root privileges are required inside Docker", bootstrap)
+
+    def test_install_actions_check_privileges_after_menu_selection(self):
+        source = (ROOT / "install.py").read_text(encoding="utf-8")
+        self.assertIn("def require_install_privileges", source)
+        self.assertIn("require_install_privileges()", source)
 
     def test_interactive_menu_remains_readable_with_ascii_parent_encoding(self):
         environment = os.environ.copy()

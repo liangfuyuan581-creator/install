@@ -240,6 +240,41 @@ def command_prefix() -> str:
     return "" if os.geteuid() == 0 else "sudo "
 
 
+def is_docker_container() -> bool:
+    if Path("/.dockerenv").exists():
+        return True
+    try:
+        cgroup = Path("/proc/1/cgroup").read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return any(marker in cgroup for marker in ("docker", "containerd", "kubepods"))
+
+
+def has_passwordless_sudo() -> bool:
+    if shutil.which("sudo") is None:
+        return False
+    result = subprocess.run(
+        ["sudo", "-n", "-v"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return result.returncode == 0
+
+
+def require_install_privileges() -> None:
+    if getattr(os, "geteuid", lambda: 0)() == 0:
+        return
+    if not is_docker_container() or has_passwordless_sudo():
+        return
+    raise RuntimeError(
+        "Root privileges are required inside Docker. The current container user "
+        "has no passwordless sudo permission. Run from Windows PowerShell: "
+        "docker exec -u 0 -it hiwonder-ros2-humble bash; then run "
+        "bash /home/hiwonder/Desktop/hiwonder"
+    )
+
+
 def run(command: str, *, dry_run: bool = False, check: bool = True) -> None:
     """Print and execute one shell command with predictable error handling."""
     print(f"\n[HiWonder]$ {command}", flush=True)
@@ -571,6 +606,7 @@ def interactive_menu() -> int:
             ros_mode = choose_ros_mode()
             if ros_mode is None:
                 continue
+            require_install_privileges()
             install_common()
             install_ros2(desktop=ros_mode == "desktop")
             write_environment()
@@ -580,6 +616,7 @@ def interactive_menu() -> int:
         if choice == "2":
             mirror = choose_mirror()
             if mirror is not None:
+                require_install_privileges()
                 configure_sources(mirror=mirror)
                 print("\nUbuntu apt source configured / Ubuntu 系统源配置完成")
                 return 0
@@ -589,11 +626,13 @@ def interactive_menu() -> int:
             with_contrib = choose_opencv_contrib()
             if with_contrib is None:
                 continue
+            require_install_privileges()
             install_opencv(with_contrib=with_contrib)
             print("\nOpenCV installation complete / OpenCV 安装完成")
             return 0
 
         if choice == "4":
+            require_install_privileges()
             write_environment()
             print("\nEnvironment configured / 环境配置完成")
             return 0
@@ -602,6 +641,7 @@ def interactive_menu() -> int:
             mirror = choose_mirror()
             if mirror is None:
                 continue
+            require_install_privileges()
             print("\n===== HiWonder complete installation / 一键完整安装 =====")
             configure_sources(mirror=mirror)
             install_common()
@@ -633,6 +673,8 @@ def main() -> int:
     args = parse_args()
     if args.module == "menu" and not args.plan:
         return interactive_menu()
+    if not args.plan:
+        require_install_privileges()
     if args.module == "all" or (args.module == "menu" and args.plan):
         modules = ALL_MODULES
     else:

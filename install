@@ -14,7 +14,7 @@ is_docker_container() {
     [[ -f "/.dockerenv" ]] || grep -qaE '(docker|containerd|kubepods)' /proc/1/cgroup 2>/dev/null
 }
 
-if [[ "${EUID}" -ne 0 ]] && is_docker_container; then
+if [[ "${EUID}" -ne 0 ]] && is_docker_container && [[ "$#" -gt 0 ]] && [[ "$1" != "--plan" ]]; then
     if ! command -v sudo >/dev/null 2>&1 || ! sudo -n -v >/dev/null 2>&1; then
         cat >&2 <<'EOF'
 [HiWonder] Root privileges are required inside Docker.
