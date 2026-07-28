@@ -137,27 +137,22 @@ def terminal_color(text: str, color: str) -> str:
     return f"{color}{text}{ANSI_RESET}"
 
 
-HIWONDER_LOGO_BORDER = "+" + "-" * 74 + "+"
-HIWONDER_GLYPHS = {
-    "H": ("##   ##", "##   ##", "##   ##", "#######", "##   ##", "##   ##", "##   ##"),
-    "I": ("#######", "   ##  ", "   ##  ", "   ##  ", "   ##  ", "   ##  ", "#######"),
-    "W": ("##   ##", "##   ##", "##   ##", "## # ##", "## # ##", "### ###", "##   ##"),
-    "O": (" ##### ", "##   ##", "##   ##", "##   ##", "##   ##", "##   ##", " ##### "),
-    "N": ("##   ##", "###  ##", "###  ##", "## # ##", "##  ###", "##  ###", "##   ##"),
-    "D": ("###### ", "##   ##", "##   ##", "##   ##", "##   ##", "##   ##", "###### "),
-    "E": ("#######", "##     ", "##     ", "###### ", "##     ", "##     ", "#######"),
-    "R": ("###### ", "##   ##", "##   ##", "###### ", "## ##  ", "##  ###", "##   ##"),
-}
 HIWONDER_LOGO_ROWS = [
-    "  ".join(HIWONDER_GLYPHS[letter][row] for letter in "HIWONDER")
-    for row in range(7)
+    "  @   @  @@@@   @   @   @@@   @   @  @@@@   @@@@@  @@@@",
+    "  @   @   @     @@ @@  @   @  @@  @  @   @  @      @   @",
+    "  @@@@@   @     @ @ @  @   @  @ @ @  @   @  @@@@   @@@@",
+    "  @   @   @     @   @  @   @  @  @@  @   @  @      @  @",
+    "  @   @  @@@@   @   @   @@@   @   @  @@@@   @@@@@  @   @",
 ]
+HIWONDER_LOGO_BORDER = "+" + "-" * 62 + "+"
 HIWONDER_LOGO = "\n".join(
     [
         "",
         HIWONDER_LOGO_BORDER,
-        *[f"| {row.center(72)} |" for row in HIWONDER_LOGO_ROWS],
-        f"| {'H I W O N D E R'.center(72)} |",
+        f"| {' '.center(60)} |",
+        *[f"| {row.center(60)} |" for row in HIWONDER_LOGO_ROWS],
+        f"| {'H I W O N D E R'.center(60)} |",
+        f"| {' '.center(60)} |",
         HIWONDER_LOGO_BORDER,
         "",
     ]
