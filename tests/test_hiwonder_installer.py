@@ -42,6 +42,7 @@ class HiWonderInstallerTests(unittest.TestCase):
         self.assertIn('export LANG="C.UTF-8"', bootstrap)
         self.assertIn('export LC_ALL="C.UTF-8"', bootstrap)
         self.assertIn('export PYTHONIOENCODING="UTF-8"', bootstrap)
+        self.assertIn("stty iutf8", bootstrap)
 
     def test_interactive_menu_remains_readable_with_ascii_parent_encoding(self):
         environment = os.environ.copy()

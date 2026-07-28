@@ -5,6 +5,11 @@ set -euo pipefail
 export LANG="C.UTF-8"
 export LC_ALL="C.UTF-8"
 export PYTHONIOENCODING="UTF-8"
+
+if [[ -t 1 ]]; then
+    stty iutf8 2>/dev/null || true
+fi
+
 HIWONDER_URL="${HIWONDER_URL:-https://raw.githubusercontent.com/liangfuyuan581-creator/install/hiwonder-ros2-opencv}"
 HIWONDER_DIR="${HIWONDER_DIR:-/tmp/hiwonder-install}"
 HIWONDER_CACHE_BUSTER="${HIWONDER_CACHE_BUSTER:-$(date +%s)}"
